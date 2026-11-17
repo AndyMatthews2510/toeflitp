@@ -223,6 +223,7 @@ function pageHome(){
   '</div>'+
   '<div class="card"><h2 style="margin-top:0">Whole test and extras</h2><div class="hrows">'+
   '<a class="hrow" href="#mock"><span class="hstep">Test</span><span><b>Full mock test</b><br><small>All three sections with a combined score. Choose Standard or Harder.</small></span></a>'+
+  '<a class="hrow" href="#progress"><span class="hstep">Save</span><span><b>My progress</b><br><small>See your scores. Save them, or send them to your teacher</small></span></a>'+
   '<a class="hrow" href="#plan"><span class="hstep">Plan</span><span><b>Study plan</b><br><small>Six weeks for a student at about 450 aiming for 520</small></span></a>'+
   '<a class="hrow" href="#tips"><span class="hstep">Help</span><span><b>Structure tips</b><br><small>How to work through Part A and Part B quickly</small></span></a>'+
   '<a class="hrow" href="#words"><span class="hstep">Help</span><span><b>Word help</b><br><small>Plain meanings for words like verb, noun and subject</small></span></a></div>'+
@@ -311,7 +312,7 @@ function pageLessons(){
     h+='<h2 style="margin-top:22px">'+groups[g][1]+'</h2><p class="note" style="margin-top:0">'+groups[g][2]+'</p><div class="grid">';
     for(var i=0;i<LESSONS.length;i++){
       var L=LESSONS[i];if(L.level!==groups[g][0])continue;
-      h+='<a class="tile" href="#lesson-'+L.id+'"><span class="lvl">Lesson '+(i+1)+'</span><b>'+esc(L.title)+'</b><span>'+esc(L.blurb)+'</span></a>';
+      h+='<a class="tile" href="#lesson-'+L.id+'"><span class="lvl">Lesson '+(i+1)+pBadge("lesson-"+L.id)+'</span><b>'+esc(L.title)+'</b><span>'+esc(L.blurb)+'</span></a>';
     }
     h+='</div>';
   }
@@ -349,6 +350,7 @@ function pageLesson(id){
   var host=document.getElementById("qz");
   function start(){
     active=mountQuiz(host,L.practice,{instant:true,label:"Practice",onDone:function(res){
+      pAddLesson("lesson-"+L.id,L.title,res.raw,res.qs.length);
       var m=res.raw===res.qs.length?"Perfect. You are ready for the next lesson.":(res.raw>=res.qs.length-1?"Nearly there. Re-read the questions you missed.":"Worth another look. Read the idea and examples again, then retry.");
       host.innerHTML='<div class="row"><div><div class="big">'+res.raw+' / '+res.qs.length+'</div><small>correct</small></div></div><p>'+m+'</p><p><button id="retry" class="primary">Try again</button></p>';
       document.getElementById("retry").onclick=start;
@@ -386,6 +388,7 @@ var LISTEN_CFG={name:"Listening Comprehension, Test 1",total:50,target:29,scale:
 var LISTEN_CFG_H={name:"Listening Comprehension, Harder Test",total:50,target:26,scale:function(r){return Math.min(68,Math.round(31+(r+3)*0.74));},parts:false,find:lListenByTitle,prefix:"#llesson-",minutes:35,stimuli:LSTIM_H};
 
 function results(host,res,instant,cfg){
+  if(!cfg.back)pAddTest(cfg,res,instant);
   var qs=res.qs,ans=res.ans,raw=res.raw,rawA=0,rawB=0,topics={},k;
   for(k=0;k<qs.length;k++){
     var ok=ans[k]===qs[k].ans;
@@ -443,7 +446,7 @@ function results(host,res,instant,cfg){
 function pageReading(){
   var h='<h1>Reading Comprehension</h1><p class="sub">Five passages, 50 questions, 55 minutes on the real test. Learn the six question types, then try a full practice test.</p>';
   h+='<div class="card"><h2>Reading lessons</h2><p class="note" style="margin-top:0">Each has the idea, the steps, the traps, a short passage and 3 practice questions.</p><div class="grid">';
-  for(var i=0;i<RLESSONS.length;i++){var L=RLESSONS[i];h+='<a class="tile" href="#rlesson-'+L.id+'"><span class="lvl">Lesson '+(i+1)+'</span><b>'+esc(L.title)+'</b><span>'+esc(L.blurb)+'</span></a>';}
+  for(var i=0;i<RLESSONS.length;i++){var L=RLESSONS[i];h+='<a class="tile" href="#rlesson-'+L.id+'"><span class="lvl">Lesson '+(i+1)+pBadge("rlesson-"+L.id)+'</span><b>'+esc(L.title)+'</b><span>'+esc(L.blurb)+'</span></a>';}
   h+='</div></div>';
   h+='<div class="card"><h2>Reading Test 1</h2><p>Five original passages with 10 questions each, in the style of the real test. The passage stays next to each question.</p><p><a class="btn primary" href="#rtest">Take Reading Test 1</a></p></div>';
   h+='<div class="card"><h2>Reading Harder Test</h2><p>Five new, more abstract passages (about 520 to 600 level). Take it when you can reach about 29 out of 50 on Test 1.</p><p><a class="btn primary" href="#rtest-hard">Take the Harder Test</a></p></div>';
@@ -476,6 +479,7 @@ function skillLesson(c,id){
   function start(){
     var mo={instant:true,label:"Practice",onDone:function(res){
       var m=res.raw===res.qs.length?"Perfect. You are ready for the next lesson.":(res.raw>=res.qs.length-1?"Nearly there. Re-read the questions you missed.":"Worth another look. Read the idea and steps again, then retry.");
+      pAddLesson(c.prefix+L.id,L.title,res.raw,res.qs.length);
       host.innerHTML='<div class="row"><div><div class="big">'+res.raw+' / '+res.qs.length+'</div><small>correct</small></div></div><p>'+m+'</p><p><button id="retry" class="primary">Try again</button></p>';
       document.getElementById("retry").onclick=start;
     }};
@@ -493,7 +497,7 @@ function pageListening(){
   var h='<h1>Listening Comprehension</h1><p class="sub">On the real test: 50 questions in about 35 minutes. Part A has 30 short conversations, Part B has 2 longer conversations, and Part C has 3 talks.</p>';
   h+='<div class="card"><h2>Before you start: check your sound</h2><p>This site reads the scripts aloud with your device\'s built-in voice. Voices are different on every device, and they sound more robotic than real recordings. They are good for practice. Also listen to real English every day.</p><p><button id="snd" class="primary">&#9654; Test my sound</button> <span id="sndmsg" class="note"></span></p></div>';
   h+='<div class="card"><h2>Listening lessons</h2><p class="note" style="margin-top:0">Each lesson has the idea, steps, traps and 3 practice questions with audio.</p><div class="grid">';
-  for(var i=0;i<LLESSONS.length;i++){var L=LLESSONS[i];h+='<a class="tile" href="#llesson-'+L.id+'"><span class="lvl">Lesson '+(i+1)+'</span><b>'+esc(L.title)+'</b><span>'+esc(L.blurb)+'</span></a>';}
+  for(var i=0;i<LLESSONS.length;i++){var L=LLESSONS[i];h+='<a class="tile" href="#llesson-'+L.id+'"><span class="lvl">Lesson '+(i+1)+pBadge("llesson-"+L.id)+'</span><b>'+esc(L.title)+'</b><span>'+esc(L.blurb)+'</span></a>';}
   h+='</div></div>';
   h+='<div class="card"><h2>Listening Test 1</h2><p>50 questions in the same three parts as the real test. In the timed test you can play each audio only once.</p><p><a class="btn primary" href="#ltest">Take Listening Test 1</a></p></div>';
   h+='<div class="card"><h2>Listening Harder Test</h2><p>50 new questions with faster language, trickier idioms and longer talks (about 520 to 600 level). Take it when you can reach about 29 out of 50 on Test 1.</p><p><a class="btn primary" href="#ltest-hard">Take the Harder Test</a></p></div>';
@@ -561,6 +565,149 @@ function pageRTest(hard){
 }
 
 
+
+/* ---------- saved progress (this browser only) ---------- */
+var PKEY="itp_progress_v1",PMEM=null;
+function pLoad(){
+  if(PMEM)return PMEM;
+  var d=null;try{d=JSON.parse(localStorage.getItem(PKEY));}catch(e){}
+  if(!d||d.v!==1||!d.tests||!d.lessons||!d.mocks)d={v:1,tests:[],lessons:{},mocks:[]};
+  PMEM=d;return d;
+}
+function pSave(){try{localStorage.setItem(PKEY,JSON.stringify(PMEM));return true;}catch(e){return false;}}
+function pAddTest(cfg,res,instant){
+  var d=pLoad(),tp={},k;
+  for(k=0;k<res.qs.length;k++){var t=res.qs[k].topic;if(!tp[t])tp[t]=[0,0];tp[t][1]++;if(res.ans[k]===res.qs[k].ans)tp[t][0]++;}
+  d.tests.push({k:cfg.name,t:Date.now(),raw:res.raw,n:cfg.total,sc:cfg.scale(res.raw),m:instant?"practice":"timed",tp:tp});
+  if(d.tests.length>300)d.tests=d.tests.slice(-300);
+  pSave();
+}
+function pAddLesson(key,title,raw,n){
+  var d=pLoad(),o=d.lessons[key]||{title:title,best:0,of:n,tries:0};
+  o.title=title;o.of=n;o.tries++;o.t=Date.now();if(raw>o.best)o.best=raw;
+  d.lessons[key]=o;pSave();
+}
+function pAddMock(level,total,secs){
+  var d=pLoad();d.mocks.push({t:Date.now(),lv:level,total:total,s:secs});
+  if(d.mocks.length>100)d.mocks=d.mocks.slice(-100);pSave();
+}
+function pBadge(key){
+  var o=pLoad().lessons[key];if(!o)return "";
+  return ' <span class="done">'+(o.best===o.of?"&#10003; ":"")+o.best+"/"+o.of+"</span>";
+}
+function pDate(t){var d=new Date(t);return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+function pLatestByTest(d){var m={};d.tests.forEach(function(x){if(!m[x.k]||x.t>=m[x.k].t)m[x.k]=x;});return m;}
+function pBestByTest(d){var m={};d.tests.forEach(function(x){if(!m[x.k]||x.raw>m[x.k].raw)m[x.k]=x;});return m;}
+function pWeak(d){
+  var lat=pLatestByTest(d),agg={},out=[];
+  for(var k in lat){var tp=lat[k].tp;for(var t in tp){var key=k.split(" ")[0]+": "+t;if(!agg[key])agg[key]=[0,0];agg[key][0]+=tp[t][0];agg[key][1]+=tp[t][1];}}
+  for(var q in agg)out.push({name:q,ok:agg[q][0],n:agg[q][1]});
+  out.sort(function(a,b){return (a.ok/a.n)-(b.ok/b.n)||b.n-a.n;});
+  return out;
+}
+function pSummary(){
+  var d=pLoad(),L=[],lat=pLatestByTest(d),best=pBestByTest(d),k;
+  L.push("TOEFL ITP practice: my progress ("+pDate(Date.now())+")");
+  var names=Object.keys(best).sort();
+  if(!names.length)L.push("No tests taken yet.");
+  names.forEach(function(n){var b=best[n],l=lat[n],c=d.tests.filter(function(x){return x.k===n;}).length;
+    L.push(n+": best "+b.raw+"/"+b.n+" (~"+b.sc+"), latest "+l.raw+"/"+l.n+" on "+pDate(l.t)+", "+c+" attempt"+(c===1?"":"s"));});
+  if(d.mocks.length){var m=d.mocks[d.mocks.length-1];
+    L.push("Mock tests: "+d.mocks.length+". Latest "+pDate(m.t)+" ("+(m.lv==="hard"?"Harder":"Standard")+"): about "+m.total+" total (Listening ~"+m.s.L+", Structure ~"+m.s.S+", Reading ~"+m.s.R+")");}
+  var ls=Object.keys(d.lessons),full=ls.filter(function(x){return d.lessons[x].best===d.lessons[x].of;}).length;
+  L.push("Lessons practised: "+ls.length+" ("+full+" with a perfect score)");
+  var w=pWeak(d).slice(0,5);
+  if(w.length){L.push("Weakest areas (latest attempts):");w.forEach(function(x){L.push("- "+x.name+": "+x.ok+"/"+x.n);});}
+  return L.join("\n");
+}
+function pMerge(inc){
+  if(!inc||inc.v!==1||!Array.isArray(inc.tests)||!inc.lessons||!Array.isArray(inc.mocks))return false;
+  var d=pLoad(),seen={};
+  d.tests.forEach(function(x){seen[x.k+"|"+x.t]=1;});
+  inc.tests.forEach(function(x){if(x&&x.k&&x.t&&!seen[x.k+"|"+x.t]){d.tests.push(x);}});
+  d.tests.sort(function(a,b){return a.t-b.t;});
+  for(var k in inc.lessons){var a=inc.lessons[k],b=d.lessons[k];
+    if(!b)d.lessons[k]=a;else{b.best=Math.max(b.best,a.best);b.tries=Math.max(b.tries,a.tries);b.t=Math.max(b.t||0,a.t||0);}}
+  var ms={};d.mocks.forEach(function(x){ms[x.t]=1;});
+  inc.mocks.forEach(function(x){if(x&&x.t&&!ms[x.t])d.mocks.push(x);});
+  d.mocks.sort(function(a,b){return a.t-b.t;});
+  pSave();return true;
+}
+
+function pageProgress(){
+  var d=pLoad(),best=pBestByTest(d),lat=pLatestByTest(d),h='<h1>My progress</h1><p class="sub">Saved on this device, in this browser</p>';
+  h+='<div class="card"><h2>Save and share</h2>'+
+     '<p>Your results are saved automatically on this device. They do not move to another phone or computer by themselves, and they are lost if you clear your browser data. Use these buttons to keep a copy or send it to your teacher.</p>'+
+     '<p><button id="pdl" class="primary">Download my progress file</button> '+
+     '<label class="btn" style="cursor:pointer">Load a progress file<input id="pld" type="file" accept=".json,application/json" style="display:none"></label> '+
+     '<button id="pcp">Copy my results as text</button></p><p id="pmsg" class="note" aria-live="polite"></p>'+
+     '<details><summary>Show the text summary</summary><textarea id="ptxt" readonly rows="9" style="width:100%;font:inherit"></textarea></details></div>';
+  var names=Object.keys(best).sort();
+  h+='<div class="card"><h2>Tests</h2>';
+  if(!names.length)h+='<p>No tests taken yet. Finish a test and it will appear here.</p>';
+  else{
+    h+='<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Test</th><th>Best</th><th>Latest</th><th>Tries</th><th>Last taken</th></tr></thead><tbody>';
+    names.forEach(function(n){var b=best[n],l=lat[n],c=d.tests.filter(function(x){return x.k===n;}).length;
+      h+='<tr><td>'+esc(n)+'</td><td>'+b.raw+' / '+b.n+' (~'+b.sc+')</td><td>'+l.raw+' / '+l.n+'</td><td>'+c+'</td><td>'+pDate(l.t)+'</td></tr>';});
+    h+='</tbody></table></div>';
+  }
+  h+='</div>';
+  if(d.mocks.length){
+    h+='<div class="card"><h2>Full mock tests</h2><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Date</th><th>Level</th><th>Total</th><th>Listening</th><th>Structure</th><th>Reading</th></tr></thead><tbody>';
+    d.mocks.slice().reverse().forEach(function(m){h+='<tr><td>'+pDate(m.t)+'</td><td>'+(m.lv==="hard"?"Harder":"Standard")+'</td><td>~'+m.total+'</td><td>~'+m.s.L+'</td><td>~'+m.s.S+'</td><td>~'+m.s.R+'</td></tr>';});
+    h+='</tbody></table></div></div>';
+  }
+  var w=pWeak(d).slice(0,8);
+  if(w.length){
+    h+='<div class="card"><h2>Weakest areas</h2><p class="note" style="margin-top:0">From your latest attempt at each test. Go to the lessons to practise these.</p>';
+    w.forEach(function(x){var pc=Math.round(x.ok/x.n*100);h+='<div class="topic"><span>'+esc(x.name)+'</span><div class="bar '+(pc>=75?"good":(pc<50?"bad":""))+'"><i style="width:'+pc+'%"></i></div><span>'+x.ok+'/'+x.n+'</span><span></span></div>';});
+    h+='<p><a class="btn" href="#lessons">Structure lessons</a> <a class="btn" href="#reading">Reading lessons</a> <a class="btn" href="#listening">Listening lessons</a></p></div>';
+  }
+  var ls=Object.keys(d.lessons);
+  h+='<div class="card"><h2>Lessons</h2>';
+  if(!ls.length)h+='<p>No lesson practice yet.</p>';
+  else{
+    var sec=[["lesson-","Structure"],["rlesson-","Reading"],["llesson-","Listening"]];
+    sec.forEach(function(S){
+      var items=ls.filter(function(k){return k.indexOf(S[0])===0&&(S[0]!=="lesson-"||true)&&!(S[0]==="lesson-"&&(k.indexOf("rlesson-")===0||k.indexOf("llesson-")===0));});
+      if(!items.length)return;
+      h+='<h3 style="margin-bottom:4px">'+S[1]+'</h3><ul class="plain">';
+      items.forEach(function(k){var o=d.lessons[k];h+='<li>'+(o.best===o.of?"&#10003; ":"")+'<a href="#'+k+'">'+esc(o.title)+'</a>: best '+o.best+'/'+o.of+' ('+o.tries+' '+(o.tries===1?"try":"tries")+')</li>';});
+      h+='</ul>';
+    });
+  }
+  h+='</div><div class="card"><h2>Start again</h2><p class="note" style="margin-top:0">This deletes all saved results from this browser. Download your file first if you want to keep a copy.</p><p><button id="pclr">Delete my saved progress</button></p></div>';
+  app.innerHTML=h;
+  var msg=document.getElementById("pmsg"),txt=document.getElementById("ptxt");
+  txt.value=pSummary();
+  document.getElementById("pdl").onclick=function(){
+    try{
+      var blob=new Blob([JSON.stringify(pLoad())],{type:"application/json"}),a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);a.download="itp-progress-"+pDate(Date.now())+".json";document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+      msg.textContent="Downloaded. Keep the file, or send it to your teacher.";
+    }catch(e){msg.textContent="The download did not work in this browser. Use the text summary instead.";}
+  };
+  document.getElementById("pld").onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;
+    var r=new FileReader();
+    r.onload=function(){var ok=false;try{ok=pMerge(JSON.parse(r.result));}catch(e){}
+      if(ok)pageProgress();else msg.textContent="That file is not a progress file from this site.";};
+    r.readAsText(f);
+  };
+  document.getElementById("pcp").onclick=function(){
+    var t=pSummary();
+    function fallback(){txt.value=t;txt.parentNode.open=true;txt.select();msg.textContent="Copy the text above (Ctrl+C or Cmd+C) and paste it into your message.";}
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){msg.textContent="Copied. Paste it into an email or chat to your teacher.";},fallback);
+    else fallback();
+  };
+  var clr=document.getElementById("pclr");
+  clr.onclick=function(){
+    if(clr.getAttribute("data-sure")!=="1"){clr.setAttribute("data-sure","1");clr.textContent="Press again to confirm delete";return;}
+    PMEM={v:1,tests:[],lessons:{},mocks:[]};pSave();pageProgress();
+  };
+}
+
 /* ---------- full mock test ---------- */
 var MOCK={res:[],level:"std"};
 function mh(){return MOCK.level==="hard";}
@@ -619,12 +766,12 @@ function mockRun(i){
   o.onDone=function(res){
     MOCK.res[i]=res;
     app.classList.remove("wide");
-    if(i<2)mockBetween(i);else mockResults();
+    if(i<2)mockBetween(i);else mockResults(true);
   };
   active=mountQuiz(document.getElementById("qz"),S.qs(),o);
 }
 
-function mockResults(){
+function mockResults(fresh){
   var rows=[],sum=0,topics={},weakest=0;
   MOCK_SECS.forEach(function(S,i){
     var r=MOCK.res[i],sc=S.cfg.scale(r.raw);
@@ -637,6 +784,7 @@ function mockResults(){
     }
   });
   var total=Math.min(677,Math.round(sum/3*10)),gap=520-total;
+  if(fresh===true){var ss={};rows.forEach(function(x){ss[x.S.key]=x.sc;});pAddMock(MOCK.level,total,ss);}
   var pct=Math.max(0,Math.min(100,Math.round((total-310)/(677-310)*100))),tpct=Math.round((520-310)/(677-310)*100);
   var h='<h1>Mock test results</h1><p class="sub">Listening, Structure and Reading &middot; '+(mh()?"Harder level":"Standard level")+'</p>';
   h+='<div class="card"><div class="row"><div><div class="big">~'+total+'</div><small>rough total score (310 to 677)</small></div><div><div class="big">520</div><small>your target</small></div></div>'+
@@ -686,6 +834,7 @@ function route(){
   else if(h==="words")pageWords();
   else if(h==="lessons")pageLessons();
   else if(h==="mock")pageMock();
+  else if(h==="progress")pageProgress();
   else if(h==="listening")pageListening();
   else if(h.indexOf("llesson-")===0)pageLLesson(h.slice(8));
   else if(h==="ltest")pageLTest();
