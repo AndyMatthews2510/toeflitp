@@ -205,7 +205,7 @@ function setNav(r){
 
 function pageHome(){
   function sec(cls,title,blurb,rows){
-    var h='<div class="card"><h2 style="margin-top:0">'+title+'</h2><p class="note" style="margin-top:0">'+blurb+'</p><div class="hrows">';
+    var h='<div class="card sec-'+cls+'"><h2 style="margin-top:0">'+title+'</h2><p class="note" style="margin-top:0">'+blurb+'</p><div class="hrows">';
     rows.forEach(function(r){h+='<a class="hrow" href="'+r[0]+'"><span class="hstep">'+r[1]+'</span><span><b>'+r[2]+'</b><br><small>'+r[3]+'</small></span></a>';});
     return h+'</div></div>';
   }
@@ -216,6 +216,7 @@ function pageHome(){
   '<li><b>Study your weakest section.</b> Do its lessons, then retake its Test 1.</li>'+
   '<li><b>Stretch.</b> When you score near 520, try the Harder tests.</li></ol>'+
   '<p><a class="btn primary" href="#mock">Start the full mock test</a> <a class="btn" href="#plan">See the 6-week study plan</a></p></div>'+
+  '<div class="card saveinfo"><h2 style="margin-top:0">Saving your progress</h2><p>Your scores and lesson results save automatically in this browser. To keep a copy or send it to your teacher, open <a href="#progress">My progress</a> and download the file or copy the text. Results do not move to another device unless you load that file there.</p></div>'+
   '<div class="grid3">'+
   sec("s","Structure","Grammar. 40 questions, 25 minutes.",[["#lessons","Learn","14 lessons","Short lessons with practice questions"],["#test","Test","Test 1","40 questions. Standard level"],["#test-hard","Test","Harder Test","40 questions. About 520 to 600 level"]])+
   sec("r","Reading","Five passages. 50 questions, 55 minutes.",[["#reading","Learn","6 lessons","Main idea, details, vocabulary, reference, purpose, inference"],["#rtest","Test","Test 1","50 questions. Standard level"],["#rtest-hard","Test","Harder Test","50 questions. About 520 to 600 level"]])+
